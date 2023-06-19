@@ -1,4 +1,11 @@
 const mongoose = require('mongoose');
+const crypto = require('crypto');
+const multer = require('multer');
+const Grid = require('gridfs-stream');
+
+// Create Multer upload middleware with memory storage
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 const dbConfig = {
   useNewUrlParser: true,
@@ -8,8 +15,12 @@ const dbConfig = {
 };
 
 const connectDB = async () => {
-  const conn = await mongoose.connect(process.env.MONGO_URI, dbConfig);
-  console.log(`MongoDB connected: ${conn.connection.host}`);
+  try {
+    const conn = await mongoose.connect(process.env.MONGO_URI, dbConfig);
+    console.log(`MongoDB connected: ${conn.connection.host}`);
+  } catch (err) {
+    console.log(`MongoDB Error: ${err}`);
+  }
 };
 
 mongoose.set('strictQuery', true);

@@ -1,15 +1,17 @@
 const { Configuration, OpenAIApi } = require("openai");
 const fs = require("fs");
 const path = require("path");
+const ImageModel = require("../models/ImageModel");
 
+// API Configuration
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Init API Connection
 const openai = new OpenAIApi(configuration);
 
-
-
+// Generate Single Image
 const generateImage = async (req, res) => {
   const { prompt, size } = req.body;
 
@@ -44,9 +46,12 @@ const generateImage = async (req, res) => {
   }
 };
 
+
+// Generate Variant Image
+// Currently only uses disk storage, will add db support later
 const generateVariantImage = async (req, res) => {
   
-  const { inputImage, size, numVariants } = req.body;
+  const { name, size, numVariants } = req.body;
 
   const imageSize = size == 'small' ? '256x256' : size == 'medium' ? '512x512' : '1024x1024';
 
@@ -78,6 +83,5 @@ const generateVariantImage = async (req, res) => {
     });
   }
 };
-
 
 module.exports = { generateImage, generateVariantImage };

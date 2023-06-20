@@ -73,10 +73,8 @@ const getImageFromDb = async (req, res) => {
     if (allowedContentTypes.filter(type => type == file.contentType)) {
       // Write file to disk storage
       // Create a temporary file to save the image data
-      const rootFolder = path.resolve(__dirname, '..');
-      console.log(`Root Path: ${rootFolder}`);
-      const imagePath = rootFolder + `/images/${filename}`; 
-      console.log(`Image Path: ${imagePath}`);
+      const parentDirectory = path.resolve(__dirname, '..');
+      const imagePath = parentDirectory + `/images/${filename}`; 
       fs.writeFileSync(imagePath, file.data);
 
       res.status(200).json({ success: true, image: file.data });

@@ -2,7 +2,7 @@
 
 > An app to generate images using OpenAI's [DALL.E 2](https://openai.com/dall-e-2) API
 
-[API documentation](https://platform.openai.com/docs/guides/images/introduction)
+[Openai API documentation](https://platform.openai.com/docs/guides/images/introduction)
 
 ## Installation
 ___
@@ -13,9 +13,13 @@ npm install
 ___
 ## Enpoints
 ___
-Current enpoints are as follows:
+Current enpoints:
 - /openapi/generateimage
-  > This endpoint will generate an image
+  > Generates an image based on user prompt
+- /file/uploadimage
+  > Uploads an image to db
+- /file/:filename
+  > Gets image from db
 
 Future enpoints will be as follows:
 - /openapi/editimage
@@ -30,8 +34,10 @@ ___
 NODE_ENV
 PORT
 OPENAI_API_KEY
+MONGO_URI
 ```
 ___
 ### Built With
+**Node JS**
 
 <a href="https://nodejs.org"><img width="120" height="120" src="https://img.icons8.com/windows/120/nodejs.png" alt="nodejs"/></a>

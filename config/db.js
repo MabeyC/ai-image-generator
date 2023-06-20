@@ -1,12 +1,6 @@
 const mongoose = require('mongoose');
-const crypto = require('crypto');
-const multer = require('multer');
-const Grid = require('gridfs-stream');
 
-// Create Multer upload middleware with memory storage
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
-
+// MongoDB configuration
 const dbConfig = {
   useNewUrlParser: true,
   useUnifiedTopology: true,

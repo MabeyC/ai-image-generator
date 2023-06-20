@@ -16,16 +16,16 @@ ___
 Current enpoints:
 - /openapi/generateimage
   > Generates an image based on user prompt
+- /openapi/variantimage
+  > Generates variant images based on user supplied image
 - /file/uploadimage
   > Uploads an image to db
 - /file/:filename
   > Gets image from db
 
-Future enpoints will be as follows:
+Future enpoints yet to be implemented:
 - /openapi/editimage
   > This endpoint will edit a previously generated image
-- /openapi/variantimage
-  > This endpoint will generate a variant of a previously generated image
 ___
 
 

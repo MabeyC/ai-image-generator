@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const PORT = process.env.PORT || 3000;
-const connectDB = require('./config/db');
+const { connectDB } = require('./config/db');
 
 // Init DB connection
 connectDB();
@@ -23,8 +23,11 @@ app.get('/', (req, res) => {
 });
 // AI Image Generation Route
 app.use('/openai', require('./routes/openaiRoutes'));
+
 // File Access Route
 app.use('/file', require('./routes/fileRoutes'));
 
 // Start server
 app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
+
+module.exports = app;

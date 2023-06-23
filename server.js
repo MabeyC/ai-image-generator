@@ -17,6 +17,8 @@ app.use(cors({
   origin: ['http://localhost:3000', 'http://localhost:3001'], 
   credentials: true 
 }));
+
+
 // Welcome Route
 app.get('/', (req, res) => {
   res.send('Welcome to the Ai Image Generation App!');
@@ -26,6 +28,12 @@ app.use('/openai', require('./routes/openaiRoutes'));
 
 // File Access Route
 app.use('/file', require('./routes/fileRoutes'));
+
+// User Route
+app.use('/user', require('./routes/userRoutes'));
+
+// Authentication Route
+app.use('/auth', require('./routes/authRoutes'));
 
 // Start server
 app.listen(PORT, () => console.log(`Listening on port ${PORT}`));

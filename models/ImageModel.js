@@ -22,7 +22,7 @@ const ImageSchema = mongoose.Schema({
   },
   sizeBytes: {
     type: Number,
-    max: [4_194_304, 'Size Cannot Exceed 4,194,304 Bytes, got {VALUE} Bytes'] // Max 4MB
+    max: [4_194_304, 'Size Cannot Exceed 4MB, got {VALUE} Bytes'] // Max 4MB
   }
 });
 

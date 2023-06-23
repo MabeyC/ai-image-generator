@@ -10,7 +10,7 @@ chai.use(chaiHttp);
 // Bring in express server
 const app = require('../server');
 
-describe('API Endpoints - openai', () => {
+describe('OpenAI Routes', () => {
 
   describe('POST /openai/generateimage', () => {
     let body = { prompt: "test", n: 1, size: '256x256' };

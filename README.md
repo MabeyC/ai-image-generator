@@ -7,8 +7,8 @@
 
 ### Under Active Development
 ### TODO
-Set up in-memory database (redis)
-Switch authentication from JWT to session
+- Set up in-memory database (redis)
+- Switch authentication from JWT to session
 
 
 ### Installation
@@ -27,33 +27,33 @@ ___
 ### Enpoints
 ___
 - /openai
-  **POST** /generateimage
-  **PARAMS** formdata: { prompt: String, size: ['small', 'medium', 'large']}
-  **DESCRIPTION** Generates an image based on user text prompt
+  - **POST** /generateimage
+  - **PARAMS** formdata: { prompt: String, size: ['small', 'medium', 'large']}
+  - **DESCRIPTION** Generates an image based on user text prompt
   
-  **POST** /variantimage
-  **PARAMS** formdata: { name: String, size: ['small', 'medium', 'large'], numVariants: 1-3 }
-  **DESCRIPTION** Generates up to 3 variants of a saved image
+  - **POST** /variantimage
+  - **PARAMS** formdata: { name: String, size: ['small', 'medium', 'large'], numVariants: 1-3 }
+  - **DESCRIPTION** Generates up to 3 variants of a saved image
 
 - /file
-  **POST** /uploadimage
-  **PARAMS** formdata: { file }
-  **DESCRIPTION** Allows for a png image file to be uploaded  
+  - **POST** /uploadimage
+  - **PARAMS** formdata: { file }
+  - **DESCRIPTION** Allows for a png image file to be uploaded  
   
-  **GET** /file/:filename
-  **PARAMS** params: { filename: String }
-  **DESCRIPTION** Gets an image from the database
+  - **GET** /file/:filename
+  - **PARAMS** params: { filename: String }
+  - **DESCRIPTION** Gets an image from the database
 
 - /user
-  **POST** /
-  **PARAMS** json: { name: String, email: String, password: String }
-  **DESCRIPTION** Register an new user
+  - **POST** /
+  - **PARAMS** json: { name: String, email: String, password: String }
+  - **DESCRIPTION** Register an new user
 
 - /auth
-  **GET** /
-  **PARAMS** header: { x-auth-token: String } (JSON Web Token)
-  **DESCRIPTION** Gets an authenticated user's id
+  - **GET** /
+  - **PARAMS** header: { x-auth-token: String } (JSON Web Token)
+  - **DESCRIPTION** Gets an authenticated user's id
  
-  **POST** /
-  **PARAMS** json: { name: String, email: String, password: String }
-  **DESCRIPTION** Authenticates a user and returns a token
+  - **POST** /
+  - **PARAMS** json: { name: String, email: String, password: String }
+  - **DESCRIPTION** Authenticates a user and returns a token

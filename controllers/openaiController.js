@@ -2,7 +2,7 @@ const { Configuration, OpenAIApi } = require("openai");
 const fs = require("fs");
 const path = require("path");
 const ImageModel = require("../models/ImageModel");
-
+const generateRandomString = require('../helpers/generateRandomString');
 // API Configuration
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -15,20 +15,42 @@ const openai = new OpenAIApi(configuration);
 const generateImage = async (req, res) => {
   const { prompt, size } = req.body;
 
+  // Validate input
+  // 1000 character limit
+  if(prompt.length > 999) {
+    return res.status(400).json({ success: false, message: 'Invalid prompt'});
+  }
+
   const imageSize = size == 'small' ? '256x256' : size == 'medium' ? '512x512' : '1024x1024';
+  const responseFormat = 'b64_json'
 
   try {
+    // Call Api Endpoint
     const response = await openai.createImage({
-      prompt: prompt,
-      n: 1,
+      prompt: prompt, // max 1000 characters  
+      n: 1, // between 1 and 10
       size: imageSize,
+      response_format: responseFormat
     });
 
-    const imageUrl = response.data.data[0].url;
+    // Disk storage Step
+    // Assuming this file is one level down from the root directory
+    const parentDirectory = path.resolve(__dirname, '..');
+    // Save the image with a random filename
+    const imagePath = parentDirectory + `/images/${generateRandomString(10)}.png`;
+    // Check if the file exists
+    if (fs.existsSync(imagePath)) {
+      return res.status(500).json({ success: false, message: 'Error Uploading File' });
+    }
+    // Create a buffer for the returned image
+    const imageBuffer = Buffer.from(response.data.data[0].b64_json, 'base64');
+    // Save the image to disk
+    await fs.writeFileSync(imagePath, imageBuffer);
 
+    // Handle the response
     res.status(200).json({
       success: true,
-      data: imageUrl
+      data: imageBuffer
     });   
 
   } catch (err) {
@@ -38,7 +60,6 @@ const generateImage = async (req, res) => {
     } else {
       console.log(err.message);
     }
-
     res.status(400).json({
       success: false,
       error: 'The image could not be generated'
@@ -59,7 +80,7 @@ const generateVariantImage = async (req, res) => {
     });
   }
 
-  // Limiting the number of variants to 3
+  // Limiting the number of variants
   if(numVariants > 3 || numVariants < 1) {
     return res.status(404).json({
       success: false,
@@ -95,27 +116,54 @@ const generateVariantImage = async (req, res) => {
         });
       }
       // Found file in db
+      const file = Buffer.from(image.data, 'base64');
       // Save the image to disk
-      await fs.writeFileSync(imagePath, image.data);
+      await fs.writeFileSync(imagePath, file);
     }
     // File should exist in disk storage now
     if(!fs.existsSync(imagePath)) {
       // If still no file found
       return res.status(404).json({ success: false, message: 'Image file does not exist' });
     }
+
+    // Generate B64 instead of URL encoding
+    const responseFormat = 'b64_json'
+
     // Call API to generate variant images
     const response = await openai.createImageVariation(
       fs.createReadStream(imagePath),
       numVariants,
-      imageSize
+      imageSize,
+      responseFormat
     );
 
     // Handle response
     const responseDataArray = response.data.data;
-    const imageUrls = responseDataArray.map(i => i.url);
+
+    // Init array of variant images
+    let imageArray = [];
+
+    // Pushing each image to the array
+    responseDataArray.forEach((file, index) => {
+      // Increment filename with version
+      const fileNameBeforeExtension = name.split('.png');
+      const modifiedFileName = fileNameBeforeExtension.join(`_v${index + 1}` + '.png');
+
+      const image = new ImageModel({
+        fileName: modifiedFileName, // Generate a unique name for each variant
+        data: file.b64_json,
+        contentType: 'image/png', // Default file type returned from the API
+        isVariant: true
+      });
+      imageArray.push(image);
+    });
+
+    // Store each variant in the database
+    const savedImages = await Promise.all(imageArray.map(image => image.save()));
+
     res.status(200).json({
       success: true,
-      data: imageUrls
+      data: savedImages
     });
 
   } catch (err) {

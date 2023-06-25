@@ -4,9 +4,17 @@ const { allowedContentTypes } = require('../config/image.js');
 // Images are stored as Base64 strings
 
 const ImageSchema = mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'user'
+  },
   fileName: {
     type: String,
     required: true
+  },
+  isVariant: {
+    type: Boolean,
+    default: false
   },
   data: {
     type: Buffer,

@@ -48,7 +48,13 @@ const uploadImageToDb = async (req, res) => {
     const image = new ImageModel({ fileName: originalname, data: buffer, contentType: mimetype, size: size });
     await image.save();
 
-
+    // Convert data from b64_json to Buffer
+    const imageData = Buffer.from(buffer, 'base64');
+    // Write file to disk storage
+    const parentDirectory = path.resolve(__dirname, '..');
+    const imagePath = parentDirectory + `/images/${originalname}`;
+    console.log('Saving image to disk Path:' + imagePath);
+    await fs.writeFileSync(imagePath, imageData);
 
     res.status(200).json({ success: true, message: `Filename: ${originalname} \\n Content Type: ${mimetype}\\n Size: ${convertBytes(size, 'KB')} KB \\n Uploaded successfully` });
   } catch (err) {
@@ -56,6 +62,34 @@ const uploadImageToDb = async (req, res) => {
     res.status(500).json({ success: false, message: 'Error uploading file'});
   }
 };
+
+
+// const getImageFromDb = async (req, res) => {
+//   try {
+//     const { filename } = req.params;
+//     // Get Image from database
+//     const file = await ImageModel.findOne({ fileName: filename }).exec();
+//     // Check if file
+//     if (!file || file.length === 0) {
+//       return res.status(404).json({
+//         err: 'No file exists'
+//       });
+//     }
+//     // Write file to disk storage
+//     const parentDirectory = this.path.resolve(__dirname, '..');
+//     const imagePath = parentDirectory + `${path}${filename}`; 
+//     console.log('Saving image to disk Path:' + imagePath);
+//     await fs.writeFileSync(imagePath, file.data);
+
+//     res.status(200).json({ success: true, image: file.data });
+
+//   } catch (err) {
+//     console.log(err.message);
+//     res.status(404).json({
+//       err: 'Not an image'
+//     });
+//   }
+// };
 
 
 const getImageFromDb = async (req, res) => {
@@ -69,18 +103,16 @@ const getImageFromDb = async (req, res) => {
         err: 'No file exists'
       });
     }
+    // // Convert data from b64_json to Buffer
+    // const imageData = Buffer.from(file.data, 'base64');
+    // // Write file to disk storage
+    // const parentDirectory = path.resolve(__dirname, '..');
+    // const imagePath = parentDirectory + `/images/${filename}`;
+    // console.log('Saving image to disk Path:' + imagePath);
+    // await fs.writeFileSync(imagePath, imageData);
 
-    if (allowedContentTypes.filter(type => type == file.contentType)) {
-      // Write file to disk storage
-      // Create a temporary file to save the image data
-      const parentDirectory = path.resolve(__dirname, '..');
-      const imagePath = parentDirectory + `/images/${filename}`; 
-      fs.writeFileSync(imagePath, file.data);
+    res.status(200).json({ success: true, image: imageData });
 
-      res.status(200).json({ success: true, image: file.data });
-    } else {
-      res.status(500).json({ success: false, message: 'Unable to save image' });
-    }
   } catch (err) {
     console.log(err.message);
     res.status(404).json({

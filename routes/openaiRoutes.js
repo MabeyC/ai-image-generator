@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { generateImage, generateVariantImage } = require('../controllers/openaiController');
-const { upload, uploadImageToDb } = require('../controllers/uploadController');
+const { upload, uploadImageToDb } = require('../controllers/fileController');
 
 router.post('/generateimage', generateImage);
 

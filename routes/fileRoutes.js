@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { upload, uploadImageToDb, getImageFromDb } = require('../controllers/uploadController');
+const { upload, uploadImageToDb, getImageFromDb } = require('../controllers/fileController');
 
 // @route GET /file/image/:filename
 // @desc Display Image and save to disk storage

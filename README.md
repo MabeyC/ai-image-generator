@@ -7,8 +7,12 @@
 
 ### Under Active Development
 ### TODO
-- Set up in-memory database (redis)
-- Switch authentication from JWT to session
+~~- Set up in-memory database (redis)~~
+~~- Switch authentication from JWT to session~~
+- Add userId to the openai api calls
+- Save images to redis cache instead of local disk storage
+- Finish CRUD endpoints on /file/image
+- Update tests
 
 
 ### Installation
@@ -51,9 +55,9 @@ ___
 
 - /auth
   - **GET** /
-  - **PARAMS** header: { x-auth-token: String } (JSON Web Token)
+  - **PARAMS** valid session cookie
   - **DESCRIPTION** Gets an authenticated user's id
  
   - **POST** /
   - **PARAMS** json: { name: String, email: String, password: String }
-  - **DESCRIPTION** Authenticates a user and returns a token
+  - **DESCRIPTION** Authenticates a user and returns a valid session cookie

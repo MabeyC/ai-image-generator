@@ -6,7 +6,7 @@ chai.use(chaiHttp);
 
 const app = require('../server'); 
 
-describe('Upload Controller', () => {
+describe('File Controller', () => {
   describe('POST /file/uploadimage', () => {
     it('should upload an image to the database', async () => {
       const file = {

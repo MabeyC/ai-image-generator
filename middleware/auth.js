@@ -1,20 +1,17 @@
-const jwt = require('jsonwebtoken');
+const { errorHandler } = require('../utils/errorHandler');
 
-module.exports = function (req, res, next) {
-  // Get the token from the header
-  const token = req.header('x-auth-token');
-  // Check if no token
-  if(!token) {
-    return res.status(401).json({ message: 'No token, authorization denied'});
+// authSession middleware
+const authSession = (req, res, next) => {
+  if (!req.session || !req.session.userId) {
+    const err = {}
+    err.message = 'Unauthorized';
+    err.statusCode = 401;
+    // Call Error Middleware
+    errorHandler(err, req, res);
+  } else {
+    next(); // Continue to the next middleware
   }
+};
 
-  // Verify Token
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+module.exports = { authSession };
 
-    req.user = decoded.user;
-    next();
-  } catch (err) {
-    return res.status(401).json({ message: 'Token is not valid'});
-  }
-}

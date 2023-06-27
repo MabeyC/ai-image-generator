@@ -7,13 +7,13 @@ chai.use(chaiHttp);
 // Import the Express app
 const app = require('../server'); 
 
-describe('File Routes',  () => {
+describe('User Routes',  () => {
   describe('POST /user', async () => {
-    it('should register a new user and return a token', () => {
+    it('should register a new user and return a cookie', () => {
       const userData = {
         name: 'John Doe',
         email: 'jdoe@example.com',
-        password: 'password123'
+        password: '123456789'
       };
 
       chai
@@ -23,7 +23,7 @@ describe('File Routes',  () => {
         .send(userData)
         .end((err, res) => {
           expect(res).to.have.status(200);
-          expect(res.body).to.have.property('token');
+          expect(res.body).to.have.property('success').to.equal(true);
         });
     });
 
@@ -59,7 +59,7 @@ describe('File Routes',  () => {
         .end(() => {
           chai
             .request(app)
-            .post('/users')
+            .post('/user')
             .send(userData)
             .end((err, res) => {
               expect(res).to.have.status(400);

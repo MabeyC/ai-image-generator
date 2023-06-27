@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { allowedContentTypes } = require('../config/image.js');
+const { allowedContentTypes } = require('../utils/image.js');
 
 // Images are stored as Base64 strings
 

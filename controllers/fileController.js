@@ -1,124 +1,98 @@
-const multer = require("multer");
+const { errorHandler } = require('../utils/errorHandler');
+const { saveImageToDb, findImageFromDb, delImageFromDb, modifyImageFromDb } = require('../dao/image');
 const { convertBytes } = require("../helpers/convertBytes");
-const ImageModel = require("../models/ImageModel");
-const { allowedContentTypes, imageSizeLimitInBytes } = require('../config/image');
-const fs = require('fs');
-const path = require('path');
-
-// File Upload Limits
-const limits = {
-  // 4 MB max size
-  fileSize: imageSizeLimitInBytes
-};
-
-// File Upload Type Filter
-function fileFilter (req, file, cb) {
-  // The function should call `cb` with a boolean
-  // to indicate if the file should be accepted
- 
-  if(allowedContentTypes.includes(file.mimetype)) {
-    console.log(`File type: ${file.mimetype} accepted.`);
-    // To accept the file pass `true`, like so:
-    cb(null, true);
-  } else {
-    console.log(`File type: ${file.mimetype} not accepted.`);
-    // To reject this file pass `false`, like so:
-    cb(null, false);
-  }
-}
-
-// Init DB Image Upload Tool
-// Create Multer upload middleware with memory storage
-const upload = multer({ 
-  storage: multer.memoryStorage(),
-  limits: limits,
-  fileFilter: fileFilter
-});
-
-// Use upload middleware to access the file data from the request object (req.file)
-// example: app.post('/upload', upload.single('file'), (req, res) => {
-//  const { originalname, buffer } = req.file
-//  res.send(200).json({ success: true, name: originalname});
-// });
 
 const uploadImageToDb = async (req, res) => {
+  const { originalname, size, buffer, mimetype } = req.file;
+
+  if(!req.file) {
+    console.log('Error, Invalid file param');
+    return errorHandler({ statusCode: 400, message: 'Invalid file' }, req, res);
+  }
+
   try {
-    const { originalname, size, buffer, mimetype } = req.file;
-
-    const image = new ImageModel({ fileName: originalname, data: buffer, contentType: mimetype, size: size });
-    await image.save();
-
-    // Convert data from b64_json to Buffer
-    const imageData = Buffer.from(buffer, 'base64');
-    // Write file to disk storage
-    const parentDirectory = path.resolve(__dirname, '..');
-    const imagePath = parentDirectory + `/images/${originalname}`;
-    console.log('Saving image to disk Path:' + imagePath);
-    await fs.writeFileSync(imagePath, imageData);
-
-    res.status(200).json({ success: true, message: `Filename: ${originalname} \\n Content Type: ${mimetype}\\n Size: ${convertBytes(size, 'KB')} KB \\n Uploaded successfully` });
+    const savedImage = await saveImageToDb({ fileName: originalname, data: buffer, contentType: mimetype, size: size });
+    if(savedImage) {
+      return res
+      .status(200)
+      .json({ 
+        success: true, 
+        message: 'File Saved To Db', 
+        data: { 
+          fileName: originalname, 
+          contentType: mimetype,
+          size: convertBytes(size, 'KB') + 'KB'
+        }
+      });
+    } else {
+      return errorHandler({ statusCode: 500, message: 'Error uploading file' }, req, res);
+    }
   } catch (err) {
     console.log(err.message);
-    res.status(500).json({ success: false, message: 'Error uploading file'});
+    return errorHandler({ statusCode: 500, message: 'Error uploading file' }, req, res);
   }
 };
-
-
-// const getImageFromDb = async (req, res) => {
-//   try {
-//     const { filename } = req.params;
-//     // Get Image from database
-//     const file = await ImageModel.findOne({ fileName: filename }).exec();
-//     // Check if file
-//     if (!file || file.length === 0) {
-//       return res.status(404).json({
-//         err: 'No file exists'
-//       });
-//     }
-//     // Write file to disk storage
-//     const parentDirectory = this.path.resolve(__dirname, '..');
-//     const imagePath = parentDirectory + `${path}${filename}`; 
-//     console.log('Saving image to disk Path:' + imagePath);
-//     await fs.writeFileSync(imagePath, file.data);
-
-//     res.status(200).json({ success: true, image: file.data });
-
-//   } catch (err) {
-//     console.log(err.message);
-//     res.status(404).json({
-//       err: 'Not an image'
-//     });
-//   }
-// };
-
 
 const getImageFromDb = async (req, res) => {
+  const { filename } = req.params;
+  
   try {
-    const { filename } = req.params;
-    // Get Image from database
-    const file = await ImageModel.findOne({ fileName: filename }).exec();
-    // Check if file
-    if (!file || file.length === 0) {
-      return res.status(404).json({
-        err: 'No file exists'
-      });
+    const imageFile = await findImageFromDb(filename);
+    if(imageFile) {
+      return res.status(200).json({ success: true, image: imageFile.data });
+    } else {
+      return errorHandler({ statusCode: 500, message: 'Unable to save image to disk'}, req, res);
     }
-    // // Convert data from b64_json to Buffer
-    // const imageData = Buffer.from(file.data, 'base64');
-    // // Write file to disk storage
-    // const parentDirectory = path.resolve(__dirname, '..');
-    // const imagePath = parentDirectory + `/images/${filename}`;
-    // console.log('Saving image to disk Path:' + imagePath);
-    // await fs.writeFileSync(imagePath, imageData);
-
-    res.status(200).json({ success: true, image: imageData });
-
   } catch (err) {
-    console.log(err.message);
-    res.status(404).json({
-      err: 'Not an image'
-    });
+    console.log(err);
+    return errorHandler({ statusCode: 400, message: 'Unable to get image from db' }, req, res);
   }
 };
 
-module.exports = { upload, uploadImageToDb, fileFilter, getImageFromDb };
+// @TODO create delete route
+// Untested
+const deleteImageFromDB = async (req, res) => {
+  const { filename } = req.params;
+  if(!filename) {
+    return errorHandler({ statusCode: 400, message: 'Invalid filename param'}, req, res);
+  }
+  
+  try {
+    const deletedImage = await delImageFromDb(filename);
+    if(deletedImage) {
+      return res.status(200).json({ success: true, message: 'Image successfully deleted from db' });
+    }
+    else {
+      console.log('Image not deleted');
+      return errorHandler({ statusCode: 500, message: 'Unable to delete image from db' }, req, res);
+    }
+  }
+  catch (err) {
+    console.log(err);
+    return errorHandler({ statusCode: 400, message: 'Unable to delete image from db' }, req, res);
+  }
+};
+
+// @TODO create edit route
+// Untested
+const editImageFromDB = async (req, res) => {
+  // Do we want to accept json or body here? 
+  const { filename, updatedFileName } = req.params;
+  try {
+    // Check if the file exists in the database
+    const imageFile = await findImageFromDb(filename);
+    if(imageFile) {
+      // We have the image file, update the image with the new parameters, maybe do this inside the image dao folder?
+      // Update image
+    }
+    else {
+      return errorHandler({ statusCode: 400, message: 'Unable to edit image from db' }, req, res);
+    }
+  }
+  catch (err) {
+    console.log(err);
+    return errorHandler({ statusCode: 400, message: 'Unable to edit image from db' }, req, res);
+  }
+};
+
+module.exports = { uploadImageToDb, getImageFromDb, deleteImageFromDB, editImageFromDB };

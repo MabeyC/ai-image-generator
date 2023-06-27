@@ -1,77 +1,31 @@
-const chai = require('chai');
-const chaiHttp = require('chai-http');
+const { expect } = require('chai');
 const sinon = require('sinon');
-const sinonChai = require('sinon-chai');
-const jwt = require('jsonwebtoken');
-const { expect } = chai;
+const { authSession } = require('../middleware/auth');
 
-chai.use(chaiHttp);
-chai.use(sinonChai);
+describe('Auth Session Middleware', () => {
+  let req, res, next;
 
-// Import the middleware function
-const authMiddleware = require('../middleware/auth');
-
-describe('Middleware - Auth', () => {
-  it('should call the next middleware if the token is valid', () => {
-    const req = {
-      header: () => 'valid-token',
-      user: null
+  beforeEach(() => {
+    req = {
+      session: {
+        userId: '0123456789' // Set the userId for a valid session
+      }
     };
-
-    const res = {};
-    const next = sinon.spy();
-
-    // Stub the jwt.verify function to return a valid decoded token
-    sinon.stub(jwt, 'verify').returns({ user: { id: 'user-id' } });
-
-    authMiddleware(req, res, next);
-
-    expect(req.user).to.deep.equal({ id: 'user-id' });
-    expect(next).to.have.been.calledOnce;
-
-    // Restore the stubbed function
-    jwt.verify.restore();
+    res = {};
+    next = sinon.spy();
   });
 
-  it('should return an error if no token is provided', () => {
-    const req = {
-      header: () => null
-    };
-  
-    const res = {
-      status: sinon.stub().returns({ json: sinon.spy() })
-    };
-  
-    const next = sinon.spy();
-  
-    authMiddleware(req, res, next);
-  
-    expect(res.status).to.have.been.calledWith(401);
-    expect(res.status).to.have.been.calledOnce;
-    expect(next).to.not.have.been.called;
+  it('should call next if the session is valid', () => {
+    authSession(req, res, next);
+    expect(next).to.have.been.calledOnceWithExactly();
   });
 
-  it('should return an error if the token is invalid', () => {
-    const req = {
-      header: () => 'invalid-token'
-    };
+  it('should throw an error with status code 401 if the session is invalid', () => {
+    req.session.userId = null; // Set userId to null to simulate an invalid session
+    const expectedError = new Error('Invalid session');
+    expectedError.statusCode = 401;
 
-    const res = {
-      status: sinon.stub().returns({ json: sinon.spy() })
-    };
-
-    const next = sinon.spy();
-
-    // Stub the jwt.verify function to throw an error
-    sinon.stub(jwt, 'verify').throws(new Error('Invalid token'));
-
-    authMiddleware(req, res, next);
-
-    expect(res.status).to.have.been.calledWith(401);
-    expect(res.status().json).to.have.been.calledWith({ message: 'Token is not valid' });
+    expect(() => authSession(req, res, next)).to.throw(expectedError);
     expect(next).to.not.have.been.called;
-
-    // Restore the stubbed function
-    jwt.verify.restore();
   });
 });
